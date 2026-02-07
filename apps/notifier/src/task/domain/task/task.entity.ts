@@ -51,16 +51,6 @@ export class Task {
     Object.assign(this, payload);
   }
 
-  equals(other: Task): boolean {
-    const conditions = [
-      this.id.equals(other.id),
-      this.date.equals(other.date),
-      this.type === other.type,
-    ];
-
-    return conditions.every(Boolean);
-  }
-
   shouldNotify(): boolean {
     const now = DateTime.local();
     const diff = this.date.diff(DateTime.local());

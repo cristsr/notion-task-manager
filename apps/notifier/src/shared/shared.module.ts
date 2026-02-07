@@ -23,6 +23,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { BasicAuthGuard } from './infrastructure/guards';
 import { EventEmitterPort } from './application/ports';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { I18nFactory, I18nService } from './infrastructure/config/i18n';
 
 @Global()
 @Module({
@@ -64,7 +65,12 @@ import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
       provide: APP_GUARD,
       useClass: BasicAuthGuard,
     },
+    {
+      provide: I18nService,
+      useFactory: I18nFactory.create(),
+      inject: [ConfigService],
+    },
   ],
-  exports: [NotionClient, Cache, LokidbConnection],
+  exports: [NotionClient, Cache, LokidbConnection, I18nService],
 })
 export class SharedModule {}
