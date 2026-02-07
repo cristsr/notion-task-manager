@@ -13,7 +13,7 @@ import {
   SyncTaskUsecase,
   VisibilityTaskUsecase,
 } from './application/usecases';
-import { TaskProviderPort } from './application/ports';
+import { TaskNotifierPort, TaskProviderPort } from './application/ports';
 import { TaskRepository } from './domain';
 import {
   MongodbTaskEntityProvider,
@@ -21,6 +21,7 @@ import {
 } from './infrastructure/adapters/persistence/mongodb/task';
 import { EventTaskService } from './infrastructure/adapters/events';
 import { SetupTaskService } from './infrastructure/adapters/bootstrap';
+import { TaskNotifier } from './infrastructure/adapters/notifier/task-notifier';
 
 @Module({
   imports: [
@@ -46,6 +47,10 @@ import { SetupTaskService } from './infrastructure/adapters/bootstrap';
     {
       provide: TaskRepository,
       useClass: MongodbTaskRepository,
+    },
+    {
+      provide: TaskNotifierPort,
+      useClass: TaskNotifier,
     },
   ],
 })

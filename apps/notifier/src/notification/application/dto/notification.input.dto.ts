@@ -23,4 +23,8 @@ export class NotificationInput {
   @IsString()
   @IsOptional()
   provider?: NotifierTypes;
+
+  constructor(input: NotificationInput) {
+    Object.assign(this, input);
+  }
 }

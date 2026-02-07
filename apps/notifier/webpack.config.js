@@ -18,6 +18,13 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMaps: true,
+      assets: [
+        {
+          input: './assets/i18n',
+          glob: '**/*',
+          output: './i18n',
+        },
+      ],
     }),
   ],
 };

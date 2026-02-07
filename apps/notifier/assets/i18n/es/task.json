@@ -1,0 +1,12 @@
+{
+  "notification": {
+    "stages": {
+      "BEFORE_24_HOURS": "Recordatorio: Tarea en 24 horas",
+      "BEFORE_1_HOUR": "Recordatorio: Tarea en 1 hora",
+      "BEFORE_15_MINUTES": "Recordatorio: Tarea en 15 minutos",
+      "AFTER_NOW": "Alerta: Tarea vencida"
+    },
+    "endTime": "Hora de finalizacion: {{time}}",
+    "urlTitle": "Ver tarea"
+  }
+}

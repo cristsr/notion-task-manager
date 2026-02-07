@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DateTime } from 'luxon';
-import dedent from 'dedent';
-import { NotificationStage, Task, TaskRepository } from '../../domain';
-import { SendNotificationUsecase } from '../../../notification/application/usecases';
+import { TaskRepository } from '../../domain';
+import { TaskNotifierPort } from '../ports';
 
 @Injectable()
 export class NotifyTaskUsecase {
@@ -10,7 +9,7 @@ export class NotifyTaskUsecase {
 
   constructor(
     private readonly taskRepository: TaskRepository,
-    private readonly notificationService: SendNotificationUsecase,
+    private readonly taskNotifier: TaskNotifierPort,
   ) {}
 
   async execute(): Promise<void> {
@@ -25,47 +24,11 @@ export class NotifyTaskUsecase {
         continue;
       }
 
-      await this.sendNotification(task);
+      await this.taskNotifier.notify(task);
 
       task.notify();
 
       await this.taskRepository.save(task);
     }
-  }
-
-  private async sendNotification(task: Task): Promise<void> {
-    const endDate = task.date.toLocaleString({
-      hour: 'numeric',
-      minute: 'numeric',
-    });
-
-    const stageLabel = this.getStageLabel(task.getNotificationStage());
-
-    const message = dedent`
-         🔔 ${stageLabel}
-         ⏲ Hora de finalizacion: ${endDate}
-      `;
-
-    this.notificationService.execute({
-      message,
-      title: task.title,
-      url: task.url,
-      urlTitle: '📝 Ver tarea',
-    });
-
-    this.logger.log(
-      `Notification sent for task [${task.id.value}] ${task.title} - Stage: ${task.getNotificationStage()}`,
-    );
-  }
-
-  private getStageLabel(stage: NotificationStage): string {
-    const mapper = {
-      BEFORE_24_HOURS: 'Recordatorio: Tarea en 24 horas',
-      BEFORE_1_HOUR: 'Recordatorio: Tarea en 1 hora',
-      BEFORE_15_MINUTES: 'Recordatorio: Tarea en 15 minutos',
-      AFTER_NOW: 'Alerta: Tarea vencida',
-    };
-
-    return mapper[stage];
   }
 }
