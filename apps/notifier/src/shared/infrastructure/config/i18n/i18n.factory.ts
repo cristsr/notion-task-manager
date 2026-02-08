@@ -16,7 +16,7 @@ export class I18nFactory {
         ns: ['task'],
         defaultNS: 'task',
         backend: {
-          loadPath: join(__dirname, 'i18n/{{lng}}/{{ns}}.json'),
+          loadPath: join(__dirname, 'assets/i18n/{{lng}}/{{ns}}.json'),
         },
         interpolation: {
           escapeValue: false,

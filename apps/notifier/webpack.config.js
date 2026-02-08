@@ -20,9 +20,9 @@ module.exports = {
       sourceMaps: true,
       assets: [
         {
-          input: './assets/i18n',
+          input: './assets',
           glob: '**/*',
-          output: './i18n',
+          output: './assets',
         },
       ],
     }),
