@@ -21,7 +21,7 @@ import {
 import { Connection } from 'mongoose';
 import { APP_GUARD } from '@nestjs/core';
 import { BasicAuthGuard } from './infrastructure/guards';
-import { EventEmitterPort } from './application/ports';
+import { EventEmitter } from './application/ports';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { I18nFactory, I18nService } from './infrastructure/config/i18n';
 
@@ -43,7 +43,7 @@ import { I18nFactory, I18nService } from './infrastructure/config/i18n';
       useExisting: CACHE_MANAGER,
     },
     {
-      provide: EventEmitterPort,
+      provide: EventEmitter,
       useExisting: EventEmitter2,
     },
     {

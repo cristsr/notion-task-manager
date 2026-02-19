@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { Uuid } from '@shared/domain/value-objects';
 import { DailyTaskRepository, DailyTask } from '@daily/domain';
 import { MongodbDailyTaskMapper } from './mongodb-daily-task.mapper';
+import { MongodbDailyTaskEntity } from './mongodb-daily-task.entity';
 
 @Injectable()
 export class MongodbDailyTaskRepository implements DailyTaskRepository {
@@ -65,5 +67,3 @@ export class MongodbDailyTaskRepository implements DailyTaskRepository {
       .exec();
   }
 }
-import { MongodbDailyTaskEntity } from './mongodb-daily-task.entity';
-import { Model } from 'mongoose';

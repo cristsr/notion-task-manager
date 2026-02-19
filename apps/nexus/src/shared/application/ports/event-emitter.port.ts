@@ -1,4 +1,4 @@
-export abstract class EventEmitterPort {
-  abstract emit(event: string | symbol, ...values: any[]): boolean;
-  abstract emitAsync(event: string | symbol, ...values: any[]): Promise<any[]>;
+export abstract class EventEmitter {
+  abstract emit<T>(event: string | symbol, ...values: T[]): boolean;
+  abstract emitAsync<T>(event: string | symbol, ...values: T[]): Promise<T[]>;
 }

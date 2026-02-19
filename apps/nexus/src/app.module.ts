@@ -6,6 +6,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from './notification/notification.module';
 import { TaskModule } from './daily/task.module';
+import { OkrModule } from './okr/okr.module';
 import { SharedModule } from './shared/shared.module';
 
 @Global()
@@ -23,6 +24,7 @@ import { SharedModule } from './shared/shared.module';
     ScheduleModule.forRoot(),
     SharedModule,
     TaskModule,
+    OkrModule,
     NotificationModule,
   ],
   providers: [
