@@ -1,10 +1,10 @@
 import { Uuid } from '@shared/domain/value-objects';
 import { OkrTaskDataSourcePort, OkrTaskService } from '../okr-task';
-import { KeyResultSourcePort } from './key-result-source.port';
+import { KeyResultDataSourcePort } from './key-result-data-source.port';
 
 export class KeyResultService {
   constructor(
-    private readonly keyResultSource: KeyResultSourcePort,
+    private readonly keyResultSource: KeyResultDataSourcePort,
     private readonly okrTaskService: OkrTaskService,
     private readonly okrTaskDataSource: OkrTaskDataSourcePort,
   ) {}

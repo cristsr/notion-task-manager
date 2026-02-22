@@ -7,4 +7,5 @@ export abstract class OkrTaskDataSourcePort {
   abstract updateObjective(taskId: Uuid, objectiveId: Nullable<Uuid>): Promise<void>;
   abstract updateKeyResult(taskId: Uuid, keyResultId: Nullable<Uuid>): Promise<void>;
   abstract getTasksByKeyResultId(keyResultId: Uuid): Promise<OkrTask[]>;
+  abstract getPendingTasks(): Promise<OkrTask[]>;
 }

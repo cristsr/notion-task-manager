@@ -5,13 +5,13 @@ import { OkrTask } from './okr-task.entity';
 import { OkrTaskRepository } from './okr-task.repository';
 import { OkrTaskDataSourcePort } from './okr-task-data-source.port';
 import { OkrTaskNotFoundError, TaskCleanupFailedError } from './okr-task.errors';
-import { KeyResult, KeyResultSourcePort } from '../key-result';
+import { KeyResult, KeyResultDataSourcePort } from '../key-result';
 
 export class OkrTaskService {
   constructor(
     private readonly okrTaskRepository: OkrTaskRepository,
     private readonly okrTaskDataSource: OkrTaskDataSourcePort,
-    private readonly keyResultSource: KeyResultSourcePort,
+    private readonly keyResultSource: KeyResultDataSourcePort,
   ) {}
 
   async syncObjective(taskId: Uuid): Promise<void> {

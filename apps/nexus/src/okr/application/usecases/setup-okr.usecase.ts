@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { KeyResultRepository, KeyResultSourcePort } from '@okr/domain';
+import { KeyResultRepository, KeyResultDataSourcePort } from '@okr/domain';
 
 @Injectable()
 export class SetupOkrUsecase {
@@ -7,7 +7,7 @@ export class SetupOkrUsecase {
 
   constructor(
     private readonly keyResultRepository: KeyResultRepository,
-    private readonly keyResultSource: KeyResultSourcePort,
+    private readonly keyResultSource: KeyResultDataSourcePort,
   ) {}
 
   async execute(): Promise<void> {
