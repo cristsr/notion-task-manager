@@ -12,8 +12,8 @@ import { NotionKeyResultMapper } from './notion-key-result.mapper';
 export class NotionKeyResultProvider implements KeyResultSourcePort {
   private readonly logger = new Logger(NotionKeyResultProvider.name);
 
-  private readonly objectiveProperty: string = this.config.get('NOTION_ORK_TASK_KEY_RESULT_PROPERTY');
-  private readonly databaseId: string = this.config.get('NOTION_KEY_RESULT_DATABASE_ID');
+  private readonly objectiveProperty: string = this.config.get('NOTION_ORK_OBJECTIVE_PROPERTY');
+  private readonly databaseId: string = this.config.get('NOTION_ORK_KEY_RESULT_DATABASE_ID');
 
   constructor(
     private readonly config: ConfigService,
