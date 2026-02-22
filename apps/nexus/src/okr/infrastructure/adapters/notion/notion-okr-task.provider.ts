@@ -1,55 +1,45 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import {
-  PageObjectResponse,
-  PropertyItemPropertyItemListResponse,
-  RelationPropertyItemObjectResponse,
-} from '@notionhq/client/build/src/api-endpoints';
-import {
-  catchError,
-  defer,
-  EMPTY,
-  expand,
-  filter,
-  from,
-  lastValueFrom,
-  map,
-  reduce,
-  retry,
-  takeWhile,
-} from 'rxjs';
-import { OkrTaskProviderPort } from '@okr/application/ports';
+import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import { catchError, defer, EMPTY, expand, from, lastValueFrom, map, reduce, retry, takeWhile } from 'rxjs';
 import { NotionClient } from '@shared/infrastructure/config/notion';
-import { OkrTask } from '@okr/domain';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
+import { OkrTask, OkrTaskDataSourcePort } from '@okr/domain';
 import { NotionOkrTaskMapper } from './notion-okr-task.mapper';
 
 @Injectable()
-export class NotionOkrTaskProvider implements OkrTaskProviderPort {
+export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
   private readonly logger = new Logger(NotionOkrTaskProvider.name);
+
+  private readonly okrTaskDatabaseId: string = 'TODO: replace';
   private readonly keyResultProperty: string = '🎯 Key Result';
   private readonly objectiveProperty: string = '🚀 Objective';
+  private readonly statusProperty: string = '📊 Status';
 
-  constructor(
-    private readonly notionClient: NotionClient,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly notionClient: NotionClient) {}
 
   async fetchById(id: Uuid): Promise<Nullable<OkrTask>> {
     const source = defer(() =>
-      from(this.notionClient.pages.retrieve({ page_id: id.value })),
+      from(
+        this.notionClient.pages.retrieve({
+          page_id: id.value,
+        }),
+      ),
     ).pipe(
       retry({
         count: 3,
         delay: 1000,
         resetOnSuccess: true,
       }),
-      map((response) =>
+      map((okrTask: PageObjectResponse) =>
         NotionOkrTaskMapper.toDomain(
-          response as PageObjectResponse,
-          this.keyResultProperty,
-          this.objectiveProperty,
+          {
+            okrTask,
+          },
+          {
+            keyResultProperty: this.keyResultProperty,
+            objectiveProperty: this.objectiveProperty,
+          },
         ),
       ),
       catchError((err) => {
@@ -64,10 +54,7 @@ export class NotionOkrTaskProvider implements OkrTaskProviderPort {
     return await lastValueFrom(source, { defaultValue: null });
   }
 
-  async updateObjective(
-    taskId: Uuid,
-    objectiveId: Nullable<Uuid>,
-  ): Promise<void> {
+  async updateObjective(taskId: Uuid, objectiveId: Nullable<Uuid>): Promise<void> {
     const source = defer(() =>
       from(
         this.notionClient.pages.update({
@@ -98,14 +85,16 @@ export class NotionOkrTaskProvider implements OkrTaskProviderPort {
     await lastValueFrom(source);
   }
 
-  async getTaskIdsByKeyResultId(keyResultId: Uuid): Promise<Uuid[]> {
-    const query = (cursor?: string) => {
-      return from(
-        this.notionClient.pages.properties.retrieve({
-          page_id: keyResultId.value,
-          property_id: 'cOmj', // TODO: UPDATE VALUE IN CONFIG
-          start_cursor: cursor,
-          page_size: 100,
+  async updateKeyResult(taskId: Uuid, keyResultId: Nullable<Uuid>): Promise<void> {
+    const source = defer(() =>
+      from(
+        this.notionClient.pages.update({
+          page_id: taskId.value,
+          properties: {
+            [this.keyResultProperty]: {
+              relation: keyResultId ? [{ id: keyResultId.value }] : [],
+            },
+          },
         }),
       ).pipe(
         retry({
@@ -113,20 +102,55 @@ export class NotionOkrTaskProvider implements OkrTaskProviderPort {
           delay: 1000,
           resetOnSuccess: true,
         }),
-        filter((res) => res.object === 'list'),
-        map((response: PropertyItemPropertyItemListResponse) => ({
-          cursor: response.next_cursor,
-          hasMore: response.has_more,
-          results: response.results,
-        })),
         catchError((err) => {
-          this.logger.warn('Failed to retrieve tasks from notion', {
-            cursor,
+          this.logger.error('Failed to update OKR task key result in Notion', {
+            taskId: taskId.value,
+            keyResultId: keyResultId?.value,
             message: err.message,
           });
 
-          return EMPTY;
+          throw err;
         }),
+      ),
+    );
+
+    await lastValueFrom(source);
+  }
+
+  async getTasksByKeyResultId(keyResultId: Uuid): Promise<OkrTask[]> {
+    const query = (cursor?: string) => {
+      return from(
+        this.notionClient.databases.query({
+          database_id: this.okrTaskDatabaseId,
+          start_cursor: cursor,
+          filter: {
+            and: [
+              {
+                property: this.keyResultProperty,
+                relation: {
+                  contains: keyResultId.value,
+                },
+              },
+              {
+                property: this.statusProperty,
+                status: {
+                  does_not_equal: 'Done',
+                },
+              },
+            ],
+          },
+        }),
+      ).pipe(
+        retry({
+          count: 3,
+          delay: 1000,
+          resetOnSuccess: true,
+        }),
+        map((response) => ({
+          cursor: response.next_cursor,
+          hasMore: response.has_more,
+          results: response.results as PageObjectResponse[],
+        })),
       );
     };
 
@@ -139,10 +163,19 @@ export class NotionOkrTaskProvider implements OkrTaskProviderPort {
       takeWhile((state) => state.hasMore, true),
       map((state) => state.results),
       reduce((acc, results) => [...acc, ...results], []),
-      map((results: RelationPropertyItemObjectResponse[]) => {
-        return results.map((r) => r.relation.id);
-      }),
-      map((results: string[]) => results.map(Uuid.create)),
+      map((results) =>
+        results.map((okrTask) =>
+          NotionOkrTaskMapper.toDomain(
+            {
+              okrTask,
+            },
+            {
+              keyResultProperty: this.keyResultProperty,
+              objectiveProperty: this.objectiveProperty,
+            },
+          ),
+        ),
+      ),
     );
 
     return await lastValueFrom(source);

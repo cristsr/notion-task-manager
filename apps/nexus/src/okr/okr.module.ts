@@ -4,15 +4,17 @@ import {
   SyncOkrTaskObjectiveUsecase,
   PropagateObjectiveToTasksUsecase,
   RemoveOkrTaskUsecase,
-  RemoveKeyResultUsecase,
   SetupOkrUsecase,
 } from './application/usecases';
 import {
-  OkrTaskProviderPort,
-  KeyResultProviderPort,
-  ObjectiveProviderPort,
-} from './application/ports';
-import { OkrTaskRepository, KeyResultRepository } from './domain';
+  OkrTaskRepository,
+  OkrTaskDataSourcePort,
+  OkrTaskService,
+  KeyResultRepository,
+  KeyResultSourcePort,
+  KeyResultService,
+  ObjectiveSourcePort,
+} from './domain';
 import {
   MongodbOkrTaskEntityProvider,
   MongodbOkrTaskRepository,
@@ -28,30 +30,24 @@ import { OkrTaskEvent } from './infrastructure/adapters/events';
 import { SetupOkrService } from './infrastructure/adapters/bootstrap';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      MongodbOkrTaskEntityProvider,
-      MongodbKeyResultEntityProvider,
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([MongodbOkrTaskEntityProvider, MongodbKeyResultEntityProvider])],
   providers: [
     SetupOkrService,
     OkrTaskEvent,
     SyncOkrTaskObjectiveUsecase,
     PropagateObjectiveToTasksUsecase,
     RemoveOkrTaskUsecase,
-    RemoveKeyResultUsecase,
     SetupOkrUsecase,
     {
-      provide: OkrTaskProviderPort,
+      provide: OkrTaskDataSourcePort,
       useClass: NotionOkrTaskProvider,
     },
     {
-      provide: KeyResultProviderPort,
+      provide: KeyResultSourcePort,
       useClass: NotionKeyResultProvider,
     },
     {
-      provide: ObjectiveProviderPort,
+      provide: ObjectiveSourcePort,
       useClass: NotionObjectiveProvider,
     },
     {
@@ -61,6 +57,24 @@ import { SetupOkrService } from './infrastructure/adapters/bootstrap';
     {
       provide: KeyResultRepository,
       useClass: MongodbKeyResultRepository,
+    },
+    {
+      provide: OkrTaskService,
+      useFactory: (
+        taskRepository: OkrTaskRepository,
+        okrTaskDatasource: OkrTaskDataSourcePort,
+        keyResultSource: KeyResultSourcePort,
+      ) => new OkrTaskService(taskRepository, okrTaskDatasource, keyResultSource),
+      inject: [OkrTaskRepository, OkrTaskDataSourcePort, KeyResultSourcePort],
+    },
+    {
+      provide: KeyResultService,
+      useFactory: (
+        keyResultSource: KeyResultSourcePort,
+        okrTaskService: OkrTaskService,
+        okrTaskDataSource: OkrTaskDataSourcePort,
+      ) => new KeyResultService(keyResultSource, okrTaskService, okrTaskDataSource),
+      inject: [KeyResultSourcePort, OkrTaskService, OkrTaskDataSourcePort],
     },
   ],
 })

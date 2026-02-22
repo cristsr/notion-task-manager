@@ -6,11 +6,7 @@ export class NotionObjectiveMapper {
   static toDomain(input: PageObjectResponse): Objective {
     return Objective.create({
       id: Uuid.create(input.id),
-      title: NotionObjectiveMapper.extractTitle(input),
+      title: input.properties['Name']['title'][0]['plain_text'] ?? '',
     });
-  }
-
-  private static extractTitle(input: PageObjectResponse): string {
-    return input.properties['Name']['title'][0]['plain_text'] ?? '';
   }
 }

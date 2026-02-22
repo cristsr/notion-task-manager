@@ -9,7 +9,6 @@ export class MongodbKeyResultMapper {
       id: keyResult.id.value,
       objectiveId: keyResult.objectiveId?.value ?? null,
       updatedAt: keyResult.updatedAt.toJSDate(),
-      taskIds: keyResult.taskIds.map((taskId) => taskId.value),
       title: keyResult.title,
     });
   }
@@ -19,7 +18,6 @@ export class MongodbKeyResultMapper {
       id: Uuid.create(entity.id),
       objectiveId: entity.objectiveId ? Uuid.create(entity.objectiveId) : null,
       updatedAt: DateTime.fromJSDate(entity.updatedAt),
-      taskIds: entity.taskIds.map((taskId) => Uuid.create(taskId)),
       title: entity.title,
     });
   }

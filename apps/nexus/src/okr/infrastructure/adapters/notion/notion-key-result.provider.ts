@@ -1,54 +1,37 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import {
-  catchError,
-  defer,
-  EMPTY,
-  expand,
-  from,
-  lastValueFrom,
-  map,
-  of,
-  reduce,
-  retry,
-  zip,
-  takeWhile,
-  switchMap,
-  toArray,
-  concatMap,
-} from 'rxjs';
-import {
-  KeyResultProviderPort,
-  OkrTaskProviderPort,
-} from '@okr/application/ports';
+import { catchError, defer, EMPTY, expand, from, lastValueFrom, map, of, reduce, retry, takeWhile } from 'rxjs';
+import { KeyResult, KeyResultSourcePort } from '@okr/domain';
 import { NotionClient } from '@shared/infrastructure/config/notion';
-import { KeyResult } from '@okr/domain';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { NotionKeyResultMapper } from './notion-key-result.mapper';
 
 @Injectable()
-export class NotionKeyResultProvider implements KeyResultProviderPort {
+export class NotionKeyResultProvider implements KeyResultSourcePort {
   private readonly logger = new Logger(NotionKeyResultProvider.name);
+
   private readonly objectiveProperty: string = '🚀 Objective';
   private readonly databaseId: string;
 
   constructor(
     private readonly config: ConfigService,
     private readonly notionClient: NotionClient,
-    private readonly taskProvider: OkrTaskProviderPort,
   ) {
     this.databaseId = this.config.get('NOTION_KEY_RESULT_DATABASE_ID');
   }
 
   async fetchById(id: Uuid): Promise<Nullable<KeyResult>> {
-    // Prepare observables for fetching Key Result and its related tasks
-    const keyResult$ = defer(() =>
-      from(this.notionClient.pages.retrieve({ page_id: id.value })),
+    const source = defer(() =>
+      from(
+        this.notionClient.pages.retrieve({
+          page_id: id.value,
+        }),
+      ),
     ).pipe(
       retry({
-        count: 2,
+        count: 3,
         delay: 1000,
         resetOnSuccess: true,
       }),
@@ -59,19 +42,10 @@ export class NotionKeyResultProvider implements KeyResultProviderPort {
         });
         return EMPTY;
       }),
-    );
-
-    const keyResultTaskIds$ = defer(() =>
-      this.taskProvider.getTaskIdsByKeyResultId(id),
-    );
-
-    // Combine both observables into one and map the result to a KeyResult domain object
-    const result$ = zip(keyResult$, keyResultTaskIds$).pipe(
-      map(([keyResult, taskIds]) => {
+      map((keyResult: PageObjectResponse) => {
         return NotionKeyResultMapper.toDomain(
           {
-            keyResult: keyResult as PageObjectResponse,
-            taskIds,
+            keyResult,
           },
           {
             objectiveProperty: this.objectiveProperty,
@@ -80,7 +54,7 @@ export class NotionKeyResultProvider implements KeyResultProviderPort {
       }),
     );
 
-    return await lastValueFrom(result$, { defaultValue: null });
+    return await lastValueFrom(source, { defaultValue: null });
   }
 
   async fetchAll(): Promise<KeyResult[]> {
@@ -91,30 +65,17 @@ export class NotionKeyResultProvider implements KeyResultProviderPort {
       }),
       takeWhile((state) => state.hasMore, true),
       map((state) => state.results),
-      reduce(
-        (acc, results) => [...acc, ...results],
-        [] as PageObjectResponse[],
+      reduce((acc, results) => [...acc, ...results], [] as PageObjectResponse[]),
+      map((results) =>
+        results.map((r) =>
+          NotionKeyResultMapper.toDomain(
+            { keyResult: r },
+            {
+              objectiveProperty: this.objectiveProperty,
+            },
+          ),
+        ),
       ),
-      switchMap((results) => {
-        return from(results).pipe(
-          concatMap(async (result) => {
-            const taskIds = await this.taskProvider.getTaskIdsByKeyResultId(
-              Uuid.create(result.id),
-            );
-
-            return NotionKeyResultMapper.toDomain(
-              {
-                keyResult: result,
-                taskIds,
-              },
-              {
-                objectiveProperty: this.objectiveProperty,
-              },
-            );
-          }),
-          toArray(),
-        );
-      }),
     );
 
     return await lastValueFrom(source, { defaultValue: [] });

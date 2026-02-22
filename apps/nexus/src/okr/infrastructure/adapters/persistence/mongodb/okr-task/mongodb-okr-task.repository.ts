@@ -21,10 +21,12 @@ export class MongodbOkrTaskRepository implements OkrTaskRepository {
   }
 
   async findByKeyResultId(keyResultId: Uuid): Promise<OkrTask[]> {
-    const tasks = await this.taskModel
-      .find({ keyResultId: keyResultId.value })
-      .exec();
+    const tasks = await this.taskModel.find({ keyResultId: keyResultId.value }).exec();
     return tasks.map(MongodbOkrTaskMapper.toDomain);
+  }
+
+  async create(task: OkrTask): Promise<void> {
+    await this.taskModel.create(MongodbOkrTaskMapper.toEntity(task));
   }
 
   async save(task: OkrTask): Promise<void> {
@@ -35,12 +37,9 @@ export class MongodbOkrTaskRepository implements OkrTaskRepository {
       return;
     }
 
-    await this.taskModel
-      .updateOne(
-        { id: task.id.value },
-        { $set: MongodbOkrTaskMapper.toEntity(task) },
-      )
-      .exec();
+    task.markAsUpdated();
+
+    await this.taskModel.updateOne({ id: task.id.value }, { $set: MongodbOkrTaskMapper.toEntity(task) }).exec();
   }
 
   async remove(id: Uuid): Promise<void> {

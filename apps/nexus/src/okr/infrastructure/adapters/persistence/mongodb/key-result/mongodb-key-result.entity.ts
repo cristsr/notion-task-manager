@@ -12,9 +12,6 @@ export class MongodbKeyResultEntity {
   @Prop({ type: Date, default: Date.now })
   updatedAt: Date;
 
-  @Prop({ type: [String], default: [] })
-  taskIds: string[];
-
   @Prop({ type: String, default: '' })
   title: string;
 
@@ -23,9 +20,7 @@ export class MongodbKeyResultEntity {
   }
 }
 
-export const KeyResultSchema = SchemaFactory.createForClass(
-  MongodbKeyResultEntity,
-);
+export const KeyResultSchema = SchemaFactory.createForClass(MongodbKeyResultEntity);
 
 export const MongodbKeyResultEntityProvider: ModelDefinition = {
   name: MongodbKeyResultEntity.name,

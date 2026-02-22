@@ -12,8 +12,6 @@ export class KeyResult {
 
   updatedAt: DateTime;
 
-  taskIds: Uuid[];
-
   private constructor(input: PropertiesOnly<KeyResult>) {
     Object.assign(this, input);
   }
@@ -39,10 +37,6 @@ export class KeyResult {
         // Both are not null, so check if they are different
         .otherwise(() => !this.objectiveId.equals(otherObjectiveId))
     );
-  }
-
-  hasTasksChanged(others: Uuid[]): boolean {
-    return !arraysEqual(this.taskIds, others, (a, b) => a.equals(b));
   }
 
   markAsUpdated(): void {
