@@ -6,17 +6,21 @@ import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { OkrTask, OkrTaskDataSourcePort } from '@okr/domain';
 import { NotionOkrTaskMapper } from './notion-okr-task.mapper';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
   private readonly logger = new Logger(NotionOkrTaskProvider.name);
 
-  private readonly okrTaskDatabaseId: string = 'TODO: replace';
-  private readonly keyResultProperty: string = '🎯 Key Result';
-  private readonly objectiveProperty: string = '🚀 Objective';
-  private readonly statusProperty: string = '📊 Status';
+  private readonly okrTaskDatabaseId: string = this.configService.get('NOTION_OKR_TASK_DATABASE_ID');
+  private readonly keyResultProperty: string = this.configService.get('NOTION_OKR_KEY_RESULT_PROPERTY');
+  private readonly objectiveProperty: string = this.configService.get('NOTION_ORK_OBJECTIVE_PROPERTY');
+  private readonly statusProperty: string = this.configService.get('NOTION_OKR_STATUS_PROPERTY');
 
-  constructor(private readonly notionClient: NotionClient) {}
+  constructor(
+    private readonly notionClient: NotionClient,
+    private readonly configService: ConfigService,
+  ) {}
 
   async fetchById(id: Uuid): Promise<Nullable<OkrTask>> {
     const source = defer(() =>

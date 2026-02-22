@@ -12,15 +12,13 @@ import { NotionKeyResultMapper } from './notion-key-result.mapper';
 export class NotionKeyResultProvider implements KeyResultSourcePort {
   private readonly logger = new Logger(NotionKeyResultProvider.name);
 
-  private readonly objectiveProperty: string = '🚀 Objective';
-  private readonly databaseId: string;
+  private readonly objectiveProperty: string = this.config.get('NOTION_ORK_TASK_KEY_RESULT_PROPERTY');
+  private readonly databaseId: string = this.config.get('NOTION_KEY_RESULT_DATABASE_ID');
 
   constructor(
     private readonly config: ConfigService,
     private readonly notionClient: NotionClient,
-  ) {
-    this.databaseId = this.config.get('NOTION_KEY_RESULT_DATABASE_ID');
-  }
+  ) {}
 
   async fetchById(id: Uuid): Promise<Nullable<KeyResult>> {
     const source = defer(() =>

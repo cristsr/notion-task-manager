@@ -16,7 +16,7 @@ export class OkrTaskEvent {
     private readonly configService: ConfigService,
     private readonly propagateObjectiveUsecase: PropagateObjectiveToTasksUsecase,
   ) {
-    this.keyResultDatasource = this.configService.get('NOTION_KEY_RESULT_DATASOURCE');
+    this.keyResultDatasource = this.configService.get('NOTION_ORK_KEY_RESULT_DATABASE_ID');
   }
 
   @OnEvent('notion.event')
