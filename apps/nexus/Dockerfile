@@ -3,13 +3,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /workspace
 COPY package.json package-lock.json ./
-COPY apps/notifier ./apps/notifier
+COPY apps/nexus ./apps/nexus
 COPY nx.json tsconfig.base.json ./
 
 RUN npm ci
 
 # Build the application
-RUN npm run nx build notifier --configuration=production
+RUN npm run nx build nexus --configuration=production
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -17,7 +17,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Copy built application from builder
-COPY --from=builder /workspace/dist/apps/notifier ./
+COPY --from=builder /workspace/dist/apps/nexus ./
 
 # Install only production dependencies
 RUN npm ci --omit=dev
