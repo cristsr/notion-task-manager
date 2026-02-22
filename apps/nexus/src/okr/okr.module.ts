@@ -11,7 +11,7 @@ import {
   OkrTaskDataSourcePort,
   OkrTaskService,
   KeyResultRepository,
-  KeyResultSourcePort,
+  KeyResultDataSourcePort,
   KeyResultService,
   ObjectiveSourcePort,
 } from './domain';
@@ -43,7 +43,7 @@ import { SetupOkrService } from './infrastructure/adapters/bootstrap';
       useClass: NotionOkrTaskProvider,
     },
     {
-      provide: KeyResultSourcePort,
+      provide: KeyResultDataSourcePort,
       useClass: NotionKeyResultProvider,
     },
     {
@@ -63,18 +63,18 @@ import { SetupOkrService } from './infrastructure/adapters/bootstrap';
       useFactory: (
         taskRepository: OkrTaskRepository,
         okrTaskDatasource: OkrTaskDataSourcePort,
-        keyResultSource: KeyResultSourcePort,
+        keyResultSource: KeyResultDataSourcePort,
       ) => new OkrTaskService(taskRepository, okrTaskDatasource, keyResultSource),
-      inject: [OkrTaskRepository, OkrTaskDataSourcePort, KeyResultSourcePort],
+      inject: [OkrTaskRepository, OkrTaskDataSourcePort, KeyResultDataSourcePort],
     },
     {
       provide: KeyResultService,
       useFactory: (
-        keyResultSource: KeyResultSourcePort,
+        keyResultSource: KeyResultDataSourcePort,
         okrTaskService: OkrTaskService,
         okrTaskDataSource: OkrTaskDataSourcePort,
       ) => new KeyResultService(keyResultSource, okrTaskService, okrTaskDataSource),
-      inject: [KeyResultSourcePort, OkrTaskService, OkrTaskDataSourcePort],
+      inject: [KeyResultDataSourcePort, OkrTaskService, OkrTaskDataSourcePort],
     },
   ],
 })

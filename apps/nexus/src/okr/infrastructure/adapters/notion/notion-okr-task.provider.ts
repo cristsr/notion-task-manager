@@ -159,7 +159,59 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
     };
 
     const source = defer(() => query()).pipe(
-      // Recursively until hasMore is false
+      expand((state) => {
+        if (!state.hasMore) return EMPTY;
+        return query(state.cursor);
+      }),
+      takeWhile((state) => state.hasMore, true),
+      map((state) => state.results),
+      reduce((acc, results) => [...acc, ...results], []),
+      map((results) =>
+        results.map((okrTask) =>
+          NotionOkrTaskMapper.toDomain(
+            {
+              okrTask,
+            },
+            {
+              keyResultProperty: this.keyResultProperty,
+              objectiveProperty: this.objectiveProperty,
+            },
+          ),
+        ),
+      ),
+    );
+
+    return await lastValueFrom(source);
+  }
+
+  async getPendingTasks(): Promise<OkrTask[]> {
+    const query = (cursor?: string) => {
+      return from(
+        this.notionClient.databases.query({
+          database_id: this.okrTaskDatabaseId,
+          start_cursor: cursor,
+          filter: {
+            property: this.statusProperty,
+            status: {
+              does_not_equal: 'Done',
+            },
+          },
+        }),
+      ).pipe(
+        retry({
+          count: 3,
+          delay: 1000,
+          resetOnSuccess: true,
+        }),
+        map((response) => ({
+          cursor: response.next_cursor,
+          hasMore: response.has_more,
+          results: response.results as PageObjectResponse[],
+        })),
+      );
+    };
+
+    const source = defer(() => query()).pipe(
       expand((state) => {
         if (!state.hasMore) return EMPTY;
         return query(state.cursor);

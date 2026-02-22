@@ -2,14 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { catchError, defer, EMPTY, expand, from, lastValueFrom, map, of, reduce, retry, takeWhile } from 'rxjs';
-import { KeyResult, KeyResultSourcePort } from '@okr/domain';
+import { KeyResult, KeyResultDataSourcePort } from '@okr/domain';
 import { NotionClient } from '@shared/infrastructure/config/notion';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { NotionKeyResultMapper } from './notion-key-result.mapper';
 
 @Injectable()
-export class NotionKeyResultProvider implements KeyResultSourcePort {
+export class NotionKeyResultProvider implements KeyResultDataSourcePort {
   private readonly logger = new Logger(NotionKeyResultProvider.name);
 
   private readonly objectiveProperty: string = this.config.get('NOTION_ORK_OBJECTIVE_PROPERTY');
