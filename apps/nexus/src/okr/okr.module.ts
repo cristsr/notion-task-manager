@@ -28,7 +28,6 @@ import {
 } from './infrastructure/adapters/notion';
 import { OkrTaskEvent } from './infrastructure/adapters/events';
 import { SetupOkrService } from './infrastructure/adapters/bootstrap';
-import { OkrTaskUpdate } from '@okr/infrastructure/scripts';
 
 @Module({
   imports: [MongooseModule.forFeature([MongodbOkrTaskEntityProvider, MongodbKeyResultEntityProvider])],
@@ -39,7 +38,6 @@ import { OkrTaskUpdate } from '@okr/infrastructure/scripts';
     PropagateObjectiveToTasksUsecase,
     RemoveOkrTaskUsecase,
     SetupOkrUsecase,
-    OkrTaskUpdate,
     {
       provide: OkrTaskDataSourcePort,
       useClass: NotionOkrTaskProvider,
