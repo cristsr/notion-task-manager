@@ -21,8 +21,8 @@ export class NotionOkrTaskMapper {
     const progress = config.okrTask.properties[options.progressProperty];
 
     const statusMap = {
-      'Not Started': OkrTaskStatus.PENDING,
-      'In Progress': OkrTaskStatus.IN_PROGRESS,
+      'Not started': OkrTaskStatus.PENDING,
+      'In progress': OkrTaskStatus.IN_PROGRESS,
       Done: OkrTaskStatus.DONE,
     };
 
