@@ -5,6 +5,7 @@ import {
   SyncOkrKeyResultUsecase,
   RemoveOkrTaskUsecase,
   SetupOkrUsecase,
+  SyncOkrTaskStatusUsecase,
 } from './application/usecases';
 import {
   OkrTaskRepository,
@@ -37,6 +38,7 @@ import { SetupOkrBootstrap } from './infrastructure/adapters/bootstrap';
     SyncOkrKeyResultUsecase,
     RemoveOkrTaskUsecase,
     SetupOkrUsecase,
+    SyncOkrTaskStatusUsecase,
     {
       provide: OkrTaskDataSourcePort,
       useClass: NotionOkrTaskProvider,
