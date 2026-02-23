@@ -18,6 +18,7 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
   private readonly keyResultProperty: string = this.configService.get('NOTION_OKR_KEY_RESULT_PROPERTY');
   private readonly objectiveProperty: string = this.configService.get('NOTION_ORK_OBJECTIVE_PROPERTY');
   private readonly statusProperty: string = this.configService.get('NOTION_OKR_STATUS_PROPERTY');
+  private readonly progressProperty: string = this.configService.get('NOTION_OKR_PROGRESS_PROPERTY');
 
   constructor(
     private readonly notionClient: NotionClient,
@@ -45,6 +46,8 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
           {
             keyResultProperty: this.keyResultProperty,
             objectiveProperty: this.objectiveProperty,
+            progressProperty: this.progressProperty,
+            statusProperty: this.statusProperty,
           },
         ),
       ),
@@ -128,6 +131,38 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
     await lastValueFrom(source);
   }
 
+  async updateProgress(taskId: Uuid, progress: number): Promise<void> {
+    const source = defer(() =>
+      from(
+        this.notionClient.pages.update({
+          page_id: taskId.value,
+          properties: {
+            [this.progressProperty]: {
+              number: progress,
+            },
+          },
+        }),
+      ),
+    ).pipe(
+      retry({
+        count: 3,
+        delay: 1000,
+        resetOnSuccess: true,
+      }),
+      catchError((err) => {
+        throw new OkrTaskSyncException(
+          {
+            taskId: taskId.value,
+            progress,
+          },
+          err,
+        );
+      }),
+    );
+
+    await lastValueFrom(source);
+  }
+
   async getTasksByKeyResultId(keyResultId: Uuid): Promise<OkrTask[]> {
     const query = (cursor?: string) => {
       return from(
@@ -193,6 +228,8 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
             {
               keyResultProperty: this.keyResultProperty,
               objectiveProperty: this.objectiveProperty,
+              progressProperty: this.progressProperty,
+              statusProperty: this.statusProperty,
             },
           ),
         ),
@@ -256,6 +293,8 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
             {
               keyResultProperty: this.keyResultProperty,
               objectiveProperty: this.objectiveProperty,
+              progressProperty: this.progressProperty,
+              statusProperty: this.statusProperty,
             },
           ),
         ),

@@ -5,6 +5,7 @@ import {
   SyncOkrKeyResultUsecase,
   RemoveOkrTaskUsecase,
   SetupOkrUsecase,
+  SyncOkrTaskStatusUsecase,
 } from './application/usecases';
 import {
   OkrTaskRepository,
@@ -25,18 +26,19 @@ import {
   NotionKeyResultProvider,
   NotionObjectiveProvider,
 } from './infrastructure/adapters/notion';
-import { OkrTaskEvent } from './infrastructure/adapters/events';
-import { SetupOkrService } from './infrastructure/adapters/bootstrap';
+import { OkrTaskEventHandler } from './infrastructure/adapters/events';
+import { SetupOkrBootstrap } from './infrastructure/adapters/bootstrap';
 
 @Module({
   imports: [MongooseModule.forFeature([MongodbOkrTaskEntityProvider, MongodbKeyResultEntityProvider])],
   providers: [
-    SetupOkrService,
-    OkrTaskEvent,
+    SetupOkrBootstrap,
+    OkrTaskEventHandler,
     SyncOkrTaskObjectiveUsecase,
     SyncOkrKeyResultUsecase,
     RemoveOkrTaskUsecase,
     SetupOkrUsecase,
+    SyncOkrTaskStatusUsecase,
     {
       provide: OkrTaskDataSourcePort,
       useClass: NotionOkrTaskProvider,

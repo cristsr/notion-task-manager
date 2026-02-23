@@ -6,6 +6,7 @@ export class OkrTaskSyncException extends ExternalServiceException {
       taskId: string;
       keyResultId?: string;
       objectiveId?: string;
+      progress?: number;
     },
     cause: Error,
   ) {
