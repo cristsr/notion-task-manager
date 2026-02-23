@@ -12,11 +12,11 @@ export class SyncOkrTaskStatusUsecase {
 
     await match([task.status, task.hasProgress()])
       .with([OkrTaskStatus.IN_PROGRESS, false], async () => {
-        task.setProgress(10);
+        task.setProgress(0.1);
         await this.okrTaskDataSource.updateProgress(taskId, task.progress);
       })
       .with([OkrTaskStatus.DONE, true], async () => {
-        task.setProgress(100);
+        task.setProgress(1);
         await this.okrTaskDataSource.updateProgress(taskId, task.progress);
       })
       .otherwise(() => {});
