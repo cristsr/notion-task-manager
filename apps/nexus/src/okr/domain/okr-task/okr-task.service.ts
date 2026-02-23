@@ -1,10 +1,9 @@
 import { match, P } from 'ts-pattern';
 import { Uuid } from '@shared/domain/value-objects';
-import { Nullable } from '@shared/domain/types';
 import { OkrTask } from './okr-task.entity';
 import { OkrTaskRepository } from './okr-task.repository';
 import { OkrTaskDataSourcePort } from './okr-task-data-source.port';
-import { OkrTaskNotFoundError, TaskCleanupFailedError } from './okr-task.errors';
+import { OkrTaskNotFoundError } from './okr-task.exception';
 import { KeyResult, KeyResultDataSourcePort } from '../key-result';
 
 export class OkrTaskService {
@@ -20,7 +19,7 @@ export class OkrTaskService {
     if (!task) {
       // The only case where this should happen is when the task is deleted
       // from Notion and the crete event is not handled yet.
-      throw new OkrTaskNotFoundError(taskId.value);
+      throw new OkrTaskNotFoundError({ taskId: taskId.value });
     }
 
     if (!task.keyResultId) {
@@ -32,33 +31,6 @@ export class OkrTaskService {
     const keyResult = await this.keyResultSource.fetchById(task.keyResultId);
 
     await this.execObjectiveSync(task, keyResult);
-  }
-
-  async updateTaskObjective(task: OkrTask, objectiveId: Nullable<Uuid>): Promise<void> {
-    await this.okrTaskDataSource.updateObjective(task.id, objectiveId);
-    task.setObjective(objectiveId);
-    await this.okrTaskRepository.save(task);
-  }
-
-  async unlinkKeyResultFromTasks(keyResultId: Uuid): Promise<void> {
-    const tasks = await this.okrTaskRepository.findByKeyResultId(keyResultId);
-    const failedTaskIds: string[] = [];
-    let cleanedCount = 0;
-
-    for (const task of tasks) {
-      try {
-        await this.okrTaskDataSource.updateObjective(task.id, null);
-        task.unlinkFromKeyResult();
-        await this.okrTaskRepository.save(task);
-        cleanedCount++;
-      } catch {
-        failedTaskIds.push(task.id.value);
-      }
-    }
-
-    if (failedTaskIds.length > 0) {
-      throw new TaskCleanupFailedError(failedTaskIds, tasks.length - cleanedCount);
-    }
   }
 
   async execObjectiveSync(task: OkrTask, keyResult: KeyResult): Promise<void> {

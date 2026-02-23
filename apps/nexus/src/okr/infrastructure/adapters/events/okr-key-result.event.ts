@@ -3,8 +3,9 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
 import { NotionEventInput, NotionEventType } from '@shared/infrastructure/dtos';
 import { Uuid } from '@shared/domain/value-objects';
-import { PropagateObjectiveToTasksUsecase } from '@okr/application/usecases';
+import { SyncOkrKeyResultUsecase } from '@okr/application/usecases';
 import { match } from 'ts-pattern';
+import { ErrorLogFormatter } from '@shared/infrastructure/logging';
 
 @Injectable()
 export class OkrTaskEvent {
@@ -14,7 +15,7 @@ export class OkrTaskEvent {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly propagateObjectiveUsecase: PropagateObjectiveToTasksUsecase,
+    private readonly propagateObjectiveUsecase: SyncOkrKeyResultUsecase,
   ) {
     this.keyResultDatasource = this.configService.get('NOTION_OKR_KEY_RESULT_DATASOURCE');
   }
@@ -34,10 +35,7 @@ export class OkrTaskEvent {
           .with(NotionEventType.PAGE_DELETED, () => this.propagateObjectiveUsecase.execute(keyResultId))
           .exhaustive();
       } catch (error) {
-        this.logger.error(`Failed to handle KeyResult event: ${event.type}`, {
-          keyResultId: keyResultId.value,
-          message: error.message,
-        });
+        this.logger.error(ErrorLogFormatter.format(error));
       }
     }
   }

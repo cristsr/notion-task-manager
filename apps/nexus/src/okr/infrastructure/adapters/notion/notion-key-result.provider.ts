@@ -7,6 +7,7 @@ import { NotionClient } from '@shared/infrastructure/config/notion';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { NotionKeyResultMapper } from './notion-key-result.mapper';
+import { ErrorLogFormatter } from '@shared/infrastructure/logging';
 
 @Injectable()
 export class NotionKeyResultProvider implements KeyResultDataSourcePort {
@@ -34,10 +35,14 @@ export class NotionKeyResultProvider implements KeyResultDataSourcePort {
         resetOnSuccess: true,
       }),
       catchError((err) => {
-        this.logger.warn('Failed to fetch Key Result from Notion', {
-          keyResultId: id.value,
-          message: err.message,
-        });
+        this.logger.warn(
+          ErrorLogFormatter.format({
+            code: 'FIND_OKR_KEY_RESULT_FAILED',
+            message: 'Failed to fetch Key Result by Id from Notion',
+            context: { keyResultId: id.value },
+            cause: err,
+          }),
+        );
         return EMPTY;
       }),
       map((keyResult: PageObjectResponse) => {
@@ -56,10 +61,40 @@ export class NotionKeyResultProvider implements KeyResultDataSourcePort {
   }
 
   async fetchAll(): Promise<KeyResult[]> {
-    const source = defer(() => this.queryKeyResults()).pipe(
+    const queryKeyResults = (cursor?: string) =>
+      from(
+        this.notionClient.databases.query({
+          database_id: this.databaseId,
+          start_cursor: cursor,
+        }),
+      ).pipe(
+        retry({
+          count: 3,
+          delay: 1000,
+          resetOnSuccess: true,
+        }),
+        map((response) => ({
+          cursor: response.next_cursor,
+          hasMore: response.has_more,
+          results: response.results as PageObjectResponse[],
+        })),
+        catchError((err) => {
+          this.logger.warn(
+            ErrorLogFormatter.format({
+              code: 'FIND_OKR_KEY_RESULTS_FAILED',
+              message: 'Failed to query Key Results from Notion',
+              context: { cursor },
+              cause: err,
+            }),
+          );
+          return of({ cursor: null, hasMore: false, results: [] });
+        }),
+      );
+
+    const source = defer(() => queryKeyResults()).pipe(
       expand((state) => {
         if (!state.hasMore) return EMPTY;
-        return this.queryKeyResults(state.cursor);
+        return queryKeyResults(state.cursor);
       }),
       takeWhile((state) => state.hasMore, true),
       map((state) => state.results),
@@ -77,32 +112,5 @@ export class NotionKeyResultProvider implements KeyResultDataSourcePort {
     );
 
     return await lastValueFrom(source, { defaultValue: [] });
-  }
-
-  private queryKeyResults(cursor?: string) {
-    return from(
-      this.notionClient.databases.query({
-        database_id: this.databaseId,
-        start_cursor: cursor,
-      }),
-    ).pipe(
-      retry({
-        count: 3,
-        delay: 1000,
-        resetOnSuccess: true,
-      }),
-      map((response) => ({
-        cursor: response.next_cursor,
-        hasMore: response.has_more,
-        results: response.results as PageObjectResponse[],
-      })),
-      catchError((err) => {
-        this.logger.warn('Failed to query Key Results from Notion', {
-          cursor,
-          message: err.message,
-        });
-        return of({ cursor: null, hasMore: false, results: [] });
-      }),
-    );
   }
 }

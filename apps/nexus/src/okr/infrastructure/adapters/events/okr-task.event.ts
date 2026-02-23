@@ -5,6 +5,7 @@ import { NotionEventInput, NotionEventType } from '@shared/infrastructure/dtos';
 import { Uuid } from '@shared/domain/value-objects';
 import { SyncOkrTaskObjectiveUsecase, RemoveOkrTaskUsecase } from '@okr/application/usecases';
 import { match } from 'ts-pattern';
+import { ErrorLogFormatter } from '@shared/infrastructure/logging';
 
 @Injectable()
 export class OkrTaskEvent {
@@ -35,10 +36,7 @@ export class OkrTaskEvent {
           .with(NotionEventType.PAGE_DELETED, () => this.removeOkrTaskUsecase.execute(taskId))
           .exhaustive();
       } catch (error) {
-        this.logger.error(`Failed to handle task event: ${event.type}`, {
-          taskId: taskId.value,
-          message: error.message,
-        });
+        this.logger.error(ErrorLogFormatter.format(error));
       }
     }
   }

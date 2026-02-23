@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   SyncOkrTaskObjectiveUsecase,
-  PropagateObjectiveToTasksUsecase,
+  SyncOkrKeyResultUsecase,
   RemoveOkrTaskUsecase,
   SetupOkrUsecase,
 } from './application/usecases';
@@ -12,7 +12,6 @@ import {
   OkrTaskService,
   KeyResultRepository,
   KeyResultDataSourcePort,
-  KeyResultService,
   ObjectiveSourcePort,
 } from './domain';
 import {
@@ -35,7 +34,7 @@ import { SetupOkrService } from './infrastructure/adapters/bootstrap';
     SetupOkrService,
     OkrTaskEvent,
     SyncOkrTaskObjectiveUsecase,
-    PropagateObjectiveToTasksUsecase,
+    SyncOkrKeyResultUsecase,
     RemoveOkrTaskUsecase,
     SetupOkrUsecase,
     {
@@ -66,15 +65,6 @@ import { SetupOkrService } from './infrastructure/adapters/bootstrap';
         keyResultSource: KeyResultDataSourcePort,
       ) => new OkrTaskService(taskRepository, okrTaskDatasource, keyResultSource),
       inject: [OkrTaskRepository, OkrTaskDataSourcePort, KeyResultDataSourcePort],
-    },
-    {
-      provide: KeyResultService,
-      useFactory: (
-        keyResultSource: KeyResultDataSourcePort,
-        okrTaskService: OkrTaskService,
-        okrTaskDataSource: OkrTaskDataSourcePort,
-      ) => new KeyResultService(keyResultSource, okrTaskService, okrTaskDataSource),
-      inject: [KeyResultDataSourcePort, OkrTaskService, OkrTaskDataSourcePort],
     },
   ],
 })

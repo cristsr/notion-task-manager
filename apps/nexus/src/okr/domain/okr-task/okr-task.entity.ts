@@ -19,22 +19,6 @@ export class OkrTask {
     return new OkrTask(input);
   }
 
-  setObjective(objectiveId: Nullable<Uuid>): void {
-    this.objectiveId = objectiveId;
-    this.updatedAt = DateTime.local();
-  }
-
-  setKeyResult(keyResultId: Nullable<Uuid>): void {
-    this.keyResultId = keyResultId;
-    this.updatedAt = DateTime.local();
-  }
-
-  unlinkFromKeyResult(): void {
-    this.keyResultId = null;
-    this.objectiveId = null;
-    this.updatedAt = DateTime.local();
-  }
-
   markAsUpdated(): void {
     this.updatedAt = DateTime.local();
   }

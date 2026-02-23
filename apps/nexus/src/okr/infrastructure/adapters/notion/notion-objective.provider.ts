@@ -6,6 +6,7 @@ import { NotionClient } from '@shared/infrastructure/config/notion';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { NotionObjectiveMapper } from './notion-objective.mapper';
+import { ErrorLogFormatter } from '@shared/infrastructure/logging';
 
 @Injectable()
 export class NotionObjectiveProvider implements ObjectiveSourcePort {
@@ -28,10 +29,14 @@ export class NotionObjectiveProvider implements ObjectiveSourcePort {
       }),
       map((response: PageObjectResponse) => NotionObjectiveMapper.toDomain(response)),
       catchError((err) => {
-        this.logger.warn('Failed to fetch Objective from Notion', {
-          objectiveId: id.value,
-          message: err.message,
-        });
+        this.logger.warn(
+          ErrorLogFormatter.format({
+            code: 'FIND_OKR_OBJECTIVE_FAILED',
+            message: 'Failed to fetch Okr Objective from Notion',
+            context: { objectiveId: id.value },
+            cause: err,
+          }),
+        );
         return EMPTY;
       }),
     );
