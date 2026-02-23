@@ -10,6 +10,8 @@ export class MongodbOkrTaskMapper {
       keyResultId: task.keyResultId?.value ?? null,
       objectiveId: task.objectiveId?.value ?? null,
       updatedAt: task.updatedAt.toJSDate(),
+      status: task.status,
+      progress: task.progress,
     });
   }
 
@@ -19,6 +21,8 @@ export class MongodbOkrTaskMapper {
       keyResultId: entity.keyResultId ? Uuid.create(entity.keyResultId) : null,
       objectiveId: entity.objectiveId ? Uuid.create(entity.objectiveId) : null,
       updatedAt: DateTime.fromJSDate(entity.updatedAt),
+      status: entity.status,
+      progress: entity.progress,
     });
   }
 }

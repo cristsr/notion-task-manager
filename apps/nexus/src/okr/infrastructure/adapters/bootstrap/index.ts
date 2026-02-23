@@ -1,1 +1,1 @@
-export * from './setup-okr.service';
+export * from './setup-okr.bootstrap';

@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import { catchError, defer, EMPTY, expand, from, lastValueFrom, map, reduce, retry, takeWhile } from 'rxjs';
+import { catchError, defer, EMPTY, expand, from, lastValueFrom, map, of, reduce, retry, takeWhile } from 'rxjs';
 import { NotionClient } from '@shared/infrastructure/config/notion';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { OkrTask, OkrTaskDataSourcePort } from '@okr/domain';
 import { NotionOkrTaskMapper } from './notion-okr-task.mapper';
 import { ConfigService } from '@nestjs/config';
+import { OkrTaskSyncException } from '@okr/application/exceptions';
+import { ErrorLogFormatter } from '@shared/infrastructure/logging';
 
 @Injectable()
 export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
@@ -16,6 +18,7 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
   private readonly keyResultProperty: string = this.configService.get('NOTION_OKR_KEY_RESULT_PROPERTY');
   private readonly objectiveProperty: string = this.configService.get('NOTION_ORK_OBJECTIVE_PROPERTY');
   private readonly statusProperty: string = this.configService.get('NOTION_OKR_STATUS_PROPERTY');
+  private readonly progressProperty: string = this.configService.get('NOTION_OKR_PROGRESS_PROPERTY');
 
   constructor(
     private readonly notionClient: NotionClient,
@@ -43,14 +46,20 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
           {
             keyResultProperty: this.keyResultProperty,
             objectiveProperty: this.objectiveProperty,
+            progressProperty: this.progressProperty,
+            statusProperty: this.statusProperty,
           },
         ),
       ),
       catchError((err) => {
-        this.logger.warn('Failed to fetch OKR task from Notion', {
-          taskId: id.value,
-          message: err.message,
-        });
+        this.logger.warn(
+          ErrorLogFormatter.format({
+            code: 'FIND_OKR_TASK_FAILED',
+            message: `Failed to fetch OKR Task by Id from Notion.`,
+            context: { taskId: id.value },
+            cause: err,
+          }),
+        );
         return EMPTY;
       }),
     );
@@ -77,12 +86,13 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
         resetOnSuccess: true,
       }),
       catchError((err) => {
-        this.logger.error('Failed to update OKR task objective in Notion', {
-          taskId: taskId.value,
-          objectiveId: objectiveId?.value,
-          message: err.message,
-        });
-        throw err;
+        throw new OkrTaskSyncException(
+          {
+            taskId: taskId.value,
+            objectiveId: objectiveId?.value,
+          },
+          err,
+        );
       }),
     );
 
@@ -107,15 +117,47 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
           resetOnSuccess: true,
         }),
         catchError((err) => {
-          this.logger.error('Failed to update OKR task key result in Notion', {
-            taskId: taskId.value,
-            keyResultId: keyResultId?.value,
-            message: err.message,
-          });
-
-          throw err;
+          throw new OkrTaskSyncException(
+            {
+              taskId: taskId.value,
+              keyResultId: keyResultId?.value,
+            },
+            err,
+          );
         }),
       ),
+    );
+
+    await lastValueFrom(source);
+  }
+
+  async updateProgress(taskId: Uuid, progress: number): Promise<void> {
+    const source = defer(() =>
+      from(
+        this.notionClient.pages.update({
+          page_id: taskId.value,
+          properties: {
+            [this.progressProperty]: {
+              number: progress,
+            },
+          },
+        }),
+      ),
+    ).pipe(
+      retry({
+        count: 3,
+        delay: 1000,
+        resetOnSuccess: true,
+      }),
+      catchError((err) => {
+        throw new OkrTaskSyncException(
+          {
+            taskId: taskId.value,
+            progress,
+          },
+          err,
+        );
+      }),
     );
 
     await lastValueFrom(source);
@@ -155,6 +197,17 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
           hasMore: response.has_more,
           results: response.results as PageObjectResponse[],
         })),
+        catchError((err) => {
+          this.logger.warn(
+            ErrorLogFormatter.format({
+              code: 'FIND_OKR_TASKS_BY_KEY_RESULT_ID_FAILED',
+              message: 'Failed to query OKR Tasks from Notion',
+              context: { keyResultId: keyResultId.value },
+              cause: err,
+            }),
+          );
+          return of({ cursor: null, hasMore: false, results: [] });
+        }),
       );
     };
 
@@ -175,6 +228,8 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
             {
               keyResultProperty: this.keyResultProperty,
               objectiveProperty: this.objectiveProperty,
+              progressProperty: this.progressProperty,
+              statusProperty: this.statusProperty,
             },
           ),
         ),
@@ -208,6 +263,16 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
           hasMore: response.has_more,
           results: response.results as PageObjectResponse[],
         })),
+        catchError((err) => {
+          this.logger.warn(
+            ErrorLogFormatter.format({
+              code: 'FIND_PENDING_OKR_TASKS_FAILED',
+              message: 'Failed to query pending OKR Tasks from Notion',
+              cause: err,
+            }),
+          );
+          return of({ cursor: null, hasMore: false, results: [] });
+        }),
       );
     };
 
@@ -228,6 +293,8 @@ export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
             {
               keyResultProperty: this.keyResultProperty,
               objectiveProperty: this.objectiveProperty,
+              progressProperty: this.progressProperty,
+              statusProperty: this.statusProperty,
             },
           ),
         ),

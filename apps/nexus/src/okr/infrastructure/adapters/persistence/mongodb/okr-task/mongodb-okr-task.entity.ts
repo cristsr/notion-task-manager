@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory, ModelDefinition } from '@nestjs/mongoose';
 import { Nullable } from '@shared/domain/types';
+import { OkrTaskStatus } from '@okr/domain';
 
 @Schema({ collection: 'okr_tasks' })
 export class MongodbOkrTaskEntity {
@@ -14,6 +15,12 @@ export class MongodbOkrTaskEntity {
 
   @Prop({ type: Date, default: Date.now })
   updatedAt: Date;
+
+  @Prop({ type: String, default: OkrTaskStatus.PENDING })
+  status: OkrTaskStatus;
+
+  @Prop({ type: Number, default: 0 })
+  progress: number;
 
   constructor(payload: MongodbOkrTaskEntity) {
     Object.assign(this, payload);

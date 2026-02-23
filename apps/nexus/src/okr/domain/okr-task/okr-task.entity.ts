@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable, PropertiesOnly } from '@shared/domain/types';
+import { OkrTaskStatus } from '@okr/domain/okr-task';
 
 export class OkrTask {
   id: Uuid;
@@ -11,6 +12,10 @@ export class OkrTask {
 
   updatedAt: DateTime;
 
+  status: OkrTaskStatus;
+
+  progress: number;
+
   private constructor(input: PropertiesOnly<OkrTask>) {
     Object.assign(this, input);
   }
@@ -19,23 +24,19 @@ export class OkrTask {
     return new OkrTask(input);
   }
 
-  setObjective(objectiveId: Nullable<Uuid>): void {
-    this.objectiveId = objectiveId;
-    this.updatedAt = DateTime.local();
-  }
-
-  setKeyResult(keyResultId: Nullable<Uuid>): void {
-    this.keyResultId = keyResultId;
-    this.updatedAt = DateTime.local();
-  }
-
-  unlinkFromKeyResult(): void {
-    this.keyResultId = null;
-    this.objectiveId = null;
-    this.updatedAt = DateTime.local();
-  }
-
   markAsUpdated(): void {
     this.updatedAt = DateTime.local();
+  }
+
+  isDone(): boolean {
+    return this.status === OkrTaskStatus.DONE;
+  }
+
+  hasProgress(): boolean {
+    return this.progress > 0;
+  }
+
+  setProgress(number: number) {
+    this.progress = number;
   }
 }

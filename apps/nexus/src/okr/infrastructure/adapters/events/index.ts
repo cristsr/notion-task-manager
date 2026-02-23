@@ -1,1 +1,1 @@
-export * from './okr-task.event';
+export * from './okr-task.event-handler';
