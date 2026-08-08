@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { NotificationInput } from '../../../application/dto';
-import { SendNotificationUsecase } from '../../../application/usecases';
+import { NotificationInput } from '@notification/application/dto';
+import { SendNotificationUsecase } from '@notification/application/usecases';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -9,7 +9,7 @@ export class NotificationsController {
   ) {}
 
   @Post('notify')
-  sendNotification(@Body() data: NotificationInput): void {
-    this.sendNotificationUseCase.execute(data);
+  sendNotification(@Body() data: NotificationInput): Promise<void> {
+    return this.sendNotificationUseCase.execute(data);
   }
 }

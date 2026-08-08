@@ -1,8 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { NOTIFIERS } from '../ports';
+import { Inject, Injectable } from '@nestjs/common';
+import { NOTIFIERS, NotificationDefaults } from '../ports';
 import { NotificationInput } from '../dto';
 import { Notifiers } from '../types';
-import { ConfigService } from '@nestjs/config';
+import { NotifierNotFoundError } from '../exceptions';
 import { Notification } from '../../domain';
 
 @Injectable()
@@ -10,26 +10,29 @@ export class SendNotificationUsecase {
   constructor(
     @Inject(NOTIFIERS)
     private readonly notifiers: Notifiers,
-    private readonly config: ConfigService,
+    private readonly defaults: NotificationDefaults,
   ) {}
 
-  execute(payload: NotificationInput): void {
-    // prettier-ignore
-    const  provider = payload.provider ?? this.config.get('NOTIFICATION_PROVIDER');
+  /**
+   * Deliver a notification through the requested provider, or the configured default
+   * @param payload
+   */
+  async execute(payload: NotificationInput): Promise<void> {
+    const provider = payload.provider ?? this.defaults.provider;
 
     const notifier = this.notifiers.get(provider);
 
     if (!notifier) {
-      throw new NotFoundException(`Notifier provider not found: ${provider}`);
+      throw new NotifierNotFoundError({ provider });
     }
 
-    notifier.notify(
+    await notifier.notify(
       Notification.create({
         title: payload.title,
         message: payload.message,
         url: payload.url,
         urlTitle: payload.urlTitle,
-        ttl: payload.ttl ?? +this.config.get('NOTIFICATION_TTL'),
+        ttl: payload.ttl ?? this.defaults.ttl,
       }),
     );
   }

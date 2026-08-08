@@ -1,14 +1,14 @@
 import { DateTime } from 'luxon';
-import {
-  DailyNotificationStage,
-  DailyTaskPriority,
-  DailyTaskStatus,
-  DailyTaskType,
-} from '@daily/domain';
 import { Uuid } from '@shared/domain/value-objects';
-import { PropertiesOnly } from '@shared/domain/types';
+import { Nullable, PropertiesOnly } from '@shared/domain/types';
+import { DailyNotificationStage, DailyTaskPriority, DailyTaskStatus, DailyTaskType } from './daily-task.enum';
 
 export class DailyTask {
+  /**
+   * Hours before its date within which a hidden daily task becomes visible again
+   */
+  private static readonly VISIBILITY_WINDOW_HOURS = 48;
+
   /**
    * Daily task unique identifier
    */
@@ -72,7 +72,7 @@ export class DailyTask {
   /**
    * Daily task last notified at timestamp
    */
-  notifiedAt: DateTime | null;
+  notifiedAt: Nullable<DateTime>;
 
   private constructor(payload?: Partial<DailyTask>) {
     Object.assign(this, payload);
@@ -163,15 +163,14 @@ export class DailyTask {
   }
 
   /**
-   * Check if a daily task must be visible based on hours
-   * @param hours
+   * Check if a daily task must be visible, based on how close its date is
    */
-  mustBeVisible(hours: number): boolean {
+  mustBeVisible(): boolean {
     if (this.isVisible()) return false;
 
     const diff = this.date.diff(DateTime.local());
 
-    return diff.as('hours') <= hours;
+    return diff.as('hours') <= DailyTask.VISIBILITY_WINDOW_HOURS;
   }
 
   /**

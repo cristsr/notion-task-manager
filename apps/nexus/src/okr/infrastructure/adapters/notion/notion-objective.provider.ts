@@ -6,7 +6,7 @@ import { NotionClient } from '@shared/infrastructure/config/notion';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { NotionObjectiveMapper } from './notion-objective.mapper';
-import { ErrorLogFormatter } from '@shared/infrastructure/logging';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
 export class NotionObjectiveProvider implements ObjectiveSourcePort {

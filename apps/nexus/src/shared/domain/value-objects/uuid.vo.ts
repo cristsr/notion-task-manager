@@ -1,12 +1,13 @@
 import { validate } from 'uuid';
 import { Nullable } from '@shared/domain/types';
+import { InvalidUuidError } from '@shared/domain/exception';
 
 export class Uuid {
   private constructor(public readonly value: string) {}
 
   static create(value: string): Uuid {
     if (!validate(value)) {
-      throw new Error('Invalid UUID');
+      throw new InvalidUuidError({ value });
     }
 
     return new Uuid(value);

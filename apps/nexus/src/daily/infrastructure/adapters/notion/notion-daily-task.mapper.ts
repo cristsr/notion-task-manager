@@ -17,7 +17,6 @@ export class NotionDailyTaskMapper {
       Done: DailyTaskStatus.DONE,
     };
 
-    //prettier-ignore
     return DailyTask.create({
       id: Uuid.create(input.id),
       title: input.properties.Name['title'][0].text.content,

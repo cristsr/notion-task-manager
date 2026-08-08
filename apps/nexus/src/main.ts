@@ -13,7 +13,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  const config = app.get<any>(ConfigService);
+  const config = app.get(ConfigService);
 
   Settings.defaultZone = config.get('TIME_ZONE');
 

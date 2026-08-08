@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { DailyTaskRepository } from '@daily/domain';
+import { ErrorLogFormatter } from '@shared/application/logging';
 import { DailyTaskNotifierPort } from '../ports';
 
 @Injectable()
@@ -27,7 +28,14 @@ export class NotifyDailyTaskUsecase {
         continue;
       }
 
-      await this.taskNotifier.notify(task);
+      try {
+        await this.taskNotifier.notify(task);
+      } catch (error) {
+        // A failed delivery must not mark the task as notified, and must not
+        // abort the remaining tasks of this run — it is retried next cycle.
+        this.logger.error(ErrorLogFormatter.format(error));
+        continue;
+      }
 
       task.notify();
 

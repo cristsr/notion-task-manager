@@ -5,11 +5,11 @@ import { NotionEventInput, NotionEventType } from '@shared/infrastructure/dtos';
 import { Uuid } from '@shared/domain/value-objects';
 import { SyncOkrKeyResultUsecase } from '@okr/application/usecases';
 import { match } from 'ts-pattern';
-import { ErrorLogFormatter } from '@shared/infrastructure/logging';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
-export class OkrTaskEvent {
-  private readonly logger = new Logger(OkrTaskEvent.name);
+export class OkrKeyResultEventHandler {
+  private readonly logger = new Logger(OkrKeyResultEventHandler.name);
 
   private readonly keyResultDatasource: string;
 
@@ -28,8 +28,8 @@ export class OkrTaskEvent {
       const keyResultId = Uuid.create(event.entity.id);
 
       try {
-        match(event.type)
-          .with(NotionEventType.PAGE_CREATED, () => {})
+        await match(event.type)
+          .with(NotionEventType.PAGE_CREATED, () => undefined)
           .with(NotionEventType.PAGE_PROPERTIES_UPDATED, () => this.propagateObjectiveUsecase.execute(keyResultId))
           .with(NotionEventType.PAGE_UNDELETED, () => this.propagateObjectiveUsecase.execute(keyResultId))
           .with(NotionEventType.PAGE_DELETED, () => this.propagateObjectiveUsecase.execute(keyResultId))

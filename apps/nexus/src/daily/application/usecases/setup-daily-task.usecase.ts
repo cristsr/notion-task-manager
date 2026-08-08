@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DailyTaskRepository } from '@daily/domain';
-import { DailyTaskProviderPort } from '../ports';
+import { DailyTaskDataSourcePort } from '../ports';
 
 @Injectable()
 export class SetupDailyTaskUsecase {
   constructor(
-    private readonly taskProvider: DailyTaskProviderPort,
+    private readonly taskProvider: DailyTaskDataSourcePort,
     private readonly taskRepository: DailyTaskRepository,
   ) {}
 
@@ -13,7 +13,7 @@ export class SetupDailyTaskUsecase {
    * Set up daily tasks at the start of the application
    */
   async execute(): Promise<void> {
-    const tasks = await this.taskProvider.fetchAll();
+    const tasks = await this.taskProvider.fetchPendingTasks();
 
     for (const task of tasks) {
       const existingTask = await this.taskRepository.findById(task.id);

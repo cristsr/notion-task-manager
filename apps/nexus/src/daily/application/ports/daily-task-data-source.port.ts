@@ -1,11 +1,11 @@
 import { DailyTask } from '@daily/domain';
 import { Uuid } from '@shared/domain/value-objects';
 
-export abstract class DailyTaskProviderPort {
+export abstract class DailyTaskDataSourcePort {
   /**
    * Fetch all daily tasks from provider
    */
-  abstract fetchAll(): Promise<DailyTask[]>;
+  abstract fetchPendingTasks(): Promise<DailyTask[]>;
 
   /**
    * Fetch daily task by id
@@ -17,5 +17,5 @@ export abstract class DailyTaskProviderPort {
    * Update daily task in provider
    * @param task
    */
-  abstract update(task: DailyTask): Promise<void>;
+  abstract updateVisibility(task: DailyTask): Promise<void>;
 }

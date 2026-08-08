@@ -26,7 +26,7 @@ import {
   NotionKeyResultProvider,
   NotionObjectiveProvider,
 } from './infrastructure/adapters/notion';
-import { OkrTaskEventHandler } from './infrastructure/adapters/events';
+import { OkrTaskEventHandler, OkrKeyResultEventHandler } from './infrastructure/adapters/events';
 import { SetupOkrBootstrap } from './infrastructure/adapters/bootstrap';
 
 @Module({
@@ -34,6 +34,7 @@ import { SetupOkrBootstrap } from './infrastructure/adapters/bootstrap';
   providers: [
     SetupOkrBootstrap,
     OkrTaskEventHandler,
+    OkrKeyResultEventHandler,
     SyncOkrTaskObjectiveUsecase,
     SyncOkrKeyResultUsecase,
     RemoveOkrTaskUsecase,

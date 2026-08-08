@@ -15,15 +15,15 @@ import {
 } from './application/usecases';
 import {
   DailyTaskNotifierPort,
-  DailyTaskProviderPort,
+  DailyTaskDataSourcePort,
 } from './application/ports';
 import { DailyTaskRepository } from './domain';
 import {
   MongodbTaskEntityProvider,
   MongodbDailyTaskRepository,
 } from './infrastructure/adapters/persistence/mongodb/task';
-import { DailyTaskEvent } from './infrastructure/adapters/events';
-import { SetupDailyTaskService } from './infrastructure/adapters/bootstrap';
+import { DailyTaskEventHandler } from './infrastructure/adapters/events';
+import { SetupDailyTaskBootstrap } from './infrastructure/adapters/bootstrap';
 import { DailyTaskNotifier } from './infrastructure/adapters/notifier';
 
 @Module({
@@ -34,8 +34,8 @@ import { DailyTaskNotifier } from './infrastructure/adapters/notifier';
   controllers: [DailyTaskController],
   providers: [
     DailyTaskScheduler,
-    SetupDailyTaskService,
-    DailyTaskEvent,
+    SetupDailyTaskBootstrap,
+    DailyTaskEventHandler,
     NotifyDailyTaskUsecase,
     PurgeDailyTaskUsecase,
     RemoveDailyTaskUsecase,
@@ -44,7 +44,7 @@ import { DailyTaskNotifier } from './infrastructure/adapters/notifier';
     SyncDailyTaskUsecase,
     VisibilityDailyTaskUsecase,
     {
-      provide: DailyTaskProviderPort,
+      provide: DailyTaskDataSourcePort,
       useClass: NotionDailyTaskProvider,
     },
     {

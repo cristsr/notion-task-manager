@@ -3,8 +3,6 @@ import { Public } from '../../decorators';
 
 @Controller('healthcheck')
 export class HealthcheckController {
-  constructor() {}
-
   @Public()
   @Get()
   healthcheck() {

@@ -12,6 +12,9 @@ export class RemoveDailyTaskUsecase {
    */
   async execute(taskId: Uuid): Promise<void> {
     const task = await this.taskRepository.findById(taskId);
+
+    if (!task) return;
+
     await this.taskRepository.remove(task);
   }
 }

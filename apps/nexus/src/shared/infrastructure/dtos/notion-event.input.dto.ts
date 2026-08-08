@@ -1,3 +1,5 @@
+import { ObjectLiteral } from '@shared/domain/types';
+
 export enum NotionEventType {
   PAGE_CREATED = 'page.created',
   PAGE_DELETED = 'page.deleted',
@@ -20,7 +22,7 @@ export class NotionEventInput {
 
   authors: string[];
 
-  accessible_by: Object[];
+  accessible_by: object[];
 
   attempt_number: number;
 
@@ -30,5 +32,9 @@ export class NotionEventInput {
     type: string;
   };
 
-  data: Record<any, any>;
+  data: ObjectLiteral & {
+    parent?: {
+      data_source_id?: string;
+    };
+  };
 }

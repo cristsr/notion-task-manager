@@ -15,7 +15,9 @@ export class NotionKeyResultMapper {
     return KeyResult.create({
       id: Uuid.create(config.keyResult.id),
       title: config.keyResult.properties['Name']['title'][0]['plain_text'] ?? '',
-      objectiveId: Uuid.create(config.keyResult.properties[options.objectiveProperty]?.['relation']?.[0]?.id),
+      objectiveId: Uuid.createOrNull(
+        config.keyResult.properties[options.objectiveProperty]?.['relation']?.[0]?.id ?? null,
+      ),
       updatedAt: DateTime.fromISO(config.keyResult.last_edited_time),
     });
   }

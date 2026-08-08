@@ -1,27 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { DailyTaskRepository } from '@daily/domain';
-import { DailyTaskProviderPort } from '../ports';
+import { DailyTaskDataSourcePort } from '../ports';
 
 @Injectable()
 export class VisibilityDailyTaskUsecase {
-  private readonly HOURS_TO_HIDE = 48;
-
   constructor(
     private readonly taskRepository: DailyTaskRepository,
-    private readonly notionRepository: DailyTaskProviderPort,
+    private readonly notionRepository: DailyTaskDataSourcePort,
   ) {}
 
   /**
-   * Set daily tasks to visible if they are younger than HOURS_TO_HIDE
+   * Reveal daily tasks that entered their visibility window
    */
   async execute(): Promise<void> {
     const tasks = await this.taskRepository.getAllTask();
 
     for (const task of tasks) {
-      if (!task.mustBeVisible(this.HOURS_TO_HIDE)) continue;
+      if (!task.mustBeVisible()) continue;
       task.setVisible(true);
       await this.taskRepository.save(task);
-      await this.notionRepository.update(task);
+      await this.notionRepository.updateVisibility(task);
     }
   }
 }

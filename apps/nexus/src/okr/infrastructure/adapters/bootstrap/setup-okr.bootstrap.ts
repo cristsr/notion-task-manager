@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SetupOkrUsecase } from '@okr/application/usecases';
-import { ErrorLogFormatter } from '@shared/infrastructure/logging';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
 export class SetupOkrBootstrap implements OnModuleInit {

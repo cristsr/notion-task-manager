@@ -1,14 +1,8 @@
-import { Controller, Get, Logger } from '@nestjs/common';
-import {
-  NotifyDailyTaskUsecase,
-  RetrieveDailyTaskUsecase,
-  SetupDailyTaskUsecase,
-} from '@daily/application/usecases';
+import { Controller, Get } from '@nestjs/common';
+import { NotifyDailyTaskUsecase, RetrieveDailyTaskUsecase, SetupDailyTaskUsecase } from '@daily/application/usecases';
 
 @Controller('tasks')
 export class DailyTaskController {
-  private readonly logger = new Logger(DailyTaskController.name);
-
   constructor(
     private readonly notifyTaskUsecase: NotifyDailyTaskUsecase,
     private readonly retrieveTaskUsecase: RetrieveDailyTaskUsecase,

@@ -7,19 +7,22 @@ import { NotionClient } from '@shared/infrastructure/config/notion';
 import { Uuid } from '@shared/domain/value-objects';
 import { Nullable } from '@shared/domain/types';
 import { NotionKeyResultMapper } from './notion-key-result.mapper';
-import { ErrorLogFormatter } from '@shared/infrastructure/logging';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
 export class NotionKeyResultProvider implements KeyResultDataSourcePort {
   private readonly logger = new Logger(NotionKeyResultProvider.name);
 
-  private readonly objectiveProperty: string = this.config.get('NOTION_ORK_OBJECTIVE_PROPERTY');
-  private readonly databaseId: string = this.config.get('NOTION_ORK_KEY_RESULT_DATABASE_ID');
+  private readonly objectiveProperty: string;
+  private readonly databaseId: string;
 
   constructor(
     private readonly config: ConfigService,
     private readonly notionClient: NotionClient,
-  ) {}
+  ) {
+    this.objectiveProperty = this.config.get('NOTION_ORK_OBJECTIVE_PROPERTY');
+    this.databaseId = this.config.get('NOTION_ORK_KEY_RESULT_DATABASE_ID');
+  }
 
   async fetchById(id: Uuid): Promise<Nullable<KeyResult>> {
     const source = defer(() =>
@@ -34,6 +37,16 @@ export class NotionKeyResultProvider implements KeyResultDataSourcePort {
         delay: 1000,
         resetOnSuccess: true,
       }),
+      map((keyResult: PageObjectResponse) => {
+        return NotionKeyResultMapper.toDomain(
+          {
+            keyResult,
+          },
+          {
+            objectiveProperty: this.objectiveProperty,
+          },
+        );
+      }),
       catchError((err) => {
         this.logger.warn(
           ErrorLogFormatter.format({
@@ -44,16 +57,6 @@ export class NotionKeyResultProvider implements KeyResultDataSourcePort {
           }),
         );
         return EMPTY;
-      }),
-      map((keyResult: PageObjectResponse) => {
-        return NotionKeyResultMapper.toDomain(
-          {
-            keyResult,
-          },
-          {
-            objectiveProperty: this.objectiveProperty,
-          },
-        );
       }),
     );
 
@@ -109,6 +112,16 @@ export class NotionKeyResultProvider implements KeyResultDataSourcePort {
           ),
         ),
       ),
+      catchError((err) => {
+        this.logger.warn(
+          ErrorLogFormatter.format({
+            code: 'MAP_OKR_KEY_RESULTS_FAILED',
+            message: 'Failed to map Key Results from Notion',
+            cause: err,
+          }),
+        );
+        return EMPTY;
+      }),
     );
 
     return await lastValueFrom(source, { defaultValue: [] });

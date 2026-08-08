@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DailyTaskProviderPort } from '../ports';
+import { DailyTaskDataSourcePort } from '../ports';
 import { Uuid } from '@shared/domain/value-objects';
 import { DailyTaskRepository } from '@daily/domain';
 
@@ -7,7 +7,7 @@ import { DailyTaskRepository } from '@daily/domain';
 export class SyncDailyTaskUsecase {
   constructor(
     private readonly taskRepository: DailyTaskRepository,
-    private readonly taskProvider: DailyTaskProviderPort,
+    private readonly taskProvider: DailyTaskDataSourcePort,
   ) {}
 
   /**

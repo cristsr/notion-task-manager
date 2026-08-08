@@ -1,37 +1,27 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import {
-  catchError,
-  defer,
-  EMPTY,
-  expand,
-  from,
-  lastValueFrom,
-  map,
-  reduce,
-  retry,
-  takeWhile,
-} from 'rxjs';
-import { DailyTaskProviderPort } from '@daily/application/ports';
+import { catchError, defer, EMPTY, expand, from, lastValueFrom, map, reduce, retry, takeWhile } from 'rxjs';
+import { DailyTaskDataSourcePort } from '@daily/application/ports';
 import { NotionClient } from '@shared/infrastructure/config/notion';
 import { DailyTask } from '@daily/domain';
 import { Uuid } from '@shared/domain/value-objects';
 import { NotionDailyTaskMapper } from './notion-daily-task.mapper';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
-export class NotionDailyTaskProvider implements DailyTaskProviderPort {
+export class NotionDailyTaskProvider implements DailyTaskDataSourcePort {
   private readonly logger = new Logger(NotionDailyTaskProvider.name);
   constructor(
     private readonly notionClient: NotionClient,
     private readonly config: ConfigService,
   ) {}
 
-  async fetchAll(): Promise<DailyTask[]> {
-    const source = defer(() => this.queryTasks()).pipe(
+  async fetchPendingTasks(): Promise<DailyTask[]> {
+    const source = defer(() => this.queryPendingTasks()).pipe(
       expand((state) => {
         if (!state.hasMore) return EMPTY;
-        return this.queryTasks(state.cursor);
+        return this.queryPendingTasks(state.cursor);
       }),
       takeWhile((state) => state.hasMore, true),
       map((state) => state.results),
@@ -49,7 +39,7 @@ export class NotionDailyTaskProvider implements DailyTaskProviderPort {
     return NotionDailyTaskMapper.toDomain(response as PageObjectResponse);
   }
 
-  async update(task: DailyTask): Promise<void> {
+  async updateVisibility(task: DailyTask): Promise<void> {
     await this.notionClient.pages.update({
       page_id: task.id.value,
       properties: {
@@ -60,7 +50,7 @@ export class NotionDailyTaskProvider implements DailyTaskProviderPort {
     });
   }
 
-  private queryTasks(cursor?: string) {
+  private queryPendingTasks(cursor?: string) {
     return from(
       this.notionClient.databases.query({
         database_id: this.config.get('NOTION_TASK_DATABASE_ID'),
@@ -94,10 +84,13 @@ export class NotionDailyTaskProvider implements DailyTaskProviderPort {
         results: response.results,
       })),
       catchError((err) => {
-        this.logger.warn('Failed to retrieve tasks from notion', {
-          cursor,
-          message: err.message,
-        });
+        this.logger.warn(
+          ErrorLogFormatter.format({
+            code: 'NOTION_QUERY_PENDING_TASKS_ERROR',
+            message: 'Failed to retrieve tasks from notion',
+            cause: err,
+          }),
+        );
 
         return EMPTY;
       }),

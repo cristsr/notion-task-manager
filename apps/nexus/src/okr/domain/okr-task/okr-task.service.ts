@@ -35,9 +35,9 @@ export class OkrTaskService {
 
   async execObjectiveSync(task: OkrTask, keyResult: KeyResult): Promise<void> {
     await match([task.objectiveId, keyResult?.objectiveId])
-      .with([P.nullish, P.nullish], () => {
+      .with([P.nullish, P.nullish], async () => {
         task.markAsUpdated();
-        this.okrTaskRepository.save(task);
+        await this.okrTaskRepository.save(task);
       })
 
       // Task hasn't an objective, but the key result has an objective -> update task with key result objective

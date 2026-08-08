@@ -4,12 +4,14 @@
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
     "moduleResolution": "node10",
-    "types": ["jest", "node"]
+    "allowJs": true,
+    "types": ["jest", "node"],
+    "paths": {
+      "@daily/*": ["apps/nexus/src/daily/*"],
+      "@shared/*": ["apps/nexus/src/shared/*"],
+      "@notification/*": ["apps/nexus/src/notification/*"],
+      "@okr/*": ["apps/nexus/src/okr/*"]
+    }
   },
-  "include": [
-    "jest.config.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
-  ]
+  "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts"]
 }

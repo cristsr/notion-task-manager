@@ -17,7 +17,8 @@ export class DailyTaskNotifier implements DailyTaskNotifierPort {
 
   async notify(task: DailyTask): Promise<void> {
     const notification = this.formatNotification(task);
-    this.sendNotificationUsecase.execute(notification);
+
+    await this.sendNotificationUsecase.execute(notification);
 
     this.logger.log(
       `Notification sent for task [${task.id.value}] ${task.title} - Stage: ${task.getNotificationStage()}`,

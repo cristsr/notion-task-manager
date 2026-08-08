@@ -5,7 +5,7 @@ import { NotionEventInput, NotionEventType } from '@shared/infrastructure/dtos';
 import { Uuid } from '@shared/domain/value-objects';
 import { SyncOkrTaskObjectiveUsecase, SyncOkrTaskStatusUsecase, RemoveOkrTaskUsecase } from '@okr/application/usecases';
 import { match } from 'ts-pattern';
-import { ErrorLogFormatter } from '@shared/infrastructure/logging';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
 export class OkrTaskEventHandler {

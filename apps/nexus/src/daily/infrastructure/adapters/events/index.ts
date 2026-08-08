@@ -1,1 +1,1 @@
-export * from './daily-task.event';
+export * from './daily-task.event-handler';

@@ -8,22 +8,28 @@ import { OkrTask, OkrTaskDataSourcePort } from '@okr/domain';
 import { NotionOkrTaskMapper } from './notion-okr-task.mapper';
 import { ConfigService } from '@nestjs/config';
 import { OkrTaskSyncException } from '@okr/application/exceptions';
-import { ErrorLogFormatter } from '@shared/infrastructure/logging';
+import { ErrorLogFormatter } from '@shared/application/logging';
 
 @Injectable()
 export class NotionOkrTaskProvider implements OkrTaskDataSourcePort {
   private readonly logger = new Logger(NotionOkrTaskProvider.name);
 
-  private readonly okrTaskDatabaseId: string = this.configService.get('NOTION_OKR_TASK_DATABASE_ID');
-  private readonly keyResultProperty: string = this.configService.get('NOTION_OKR_KEY_RESULT_PROPERTY');
-  private readonly objectiveProperty: string = this.configService.get('NOTION_ORK_OBJECTIVE_PROPERTY');
-  private readonly statusProperty: string = this.configService.get('NOTION_OKR_STATUS_PROPERTY');
-  private readonly progressProperty: string = this.configService.get('NOTION_OKR_PROGRESS_PROPERTY');
+  private readonly okrTaskDatabaseId: string;
+  private readonly keyResultProperty: string;
+  private readonly objectiveProperty: string;
+  private readonly statusProperty: string;
+  private readonly progressProperty: string;
 
   constructor(
     private readonly notionClient: NotionClient,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.okrTaskDatabaseId = this.configService.get('NOTION_OKR_TASK_DATABASE_ID');
+    this.keyResultProperty = this.configService.get('NOTION_OKR_KEY_RESULT_PROPERTY');
+    this.objectiveProperty = this.configService.get('NOTION_ORK_OBJECTIVE_PROPERTY');
+    this.statusProperty = this.configService.get('NOTION_OKR_STATUS_PROPERTY');
+    this.progressProperty = this.configService.get('NOTION_OKR_PROGRESS_PROPERTY');
+  }
 
   async fetchById(id: Uuid): Promise<Nullable<OkrTask>> {
     const source = defer(() =>

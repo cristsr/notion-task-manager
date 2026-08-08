@@ -1,1 +1,1 @@
-export * from './setup-daily-task.service';
+export * from './setup-daily-task.bootstrap';
