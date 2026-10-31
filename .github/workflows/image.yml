@@ -1,0 +1,54 @@
+name: Image
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "apps/nexus/**"
+      - "package.json"
+      - "package-lock.json"
+      - "nx.json"
+      - "tsconfig.base.json"
+      - ".dockerignore"
+      - ".github/workflows/image.yml"
+  # Builds without publishing, so a change to the image is checked before it merges
+  pull_request:
+    paths:
+      - "apps/nexus/**"
+      - "package.json"
+      - "package-lock.json"
+      - "nx.json"
+      - "tsconfig.base.json"
+      - ".dockerignore"
+      - ".github/workflows/image.yml"
+  # Publishes the image of any branch, run it from the branch to get the image before the merge
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/login-action@v4
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The tag is the commit, never reused. The homelab pins it by hand in
+      # workloads/nexus/nexus.yaml, as Renovate skips ghcr.io/cristsr/**.
+      - id: tag
+        run: echo "value=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/nexus/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.value }}

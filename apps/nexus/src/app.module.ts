@@ -8,6 +8,7 @@ import { NotificationModule } from './notification/notification.module';
 import { TaskModule } from './daily/task.module';
 import { OkrModule } from './okr/okr.module';
 import { SharedModule } from './shared/shared.module';
+import { TemplateModule } from './template/template.module';
 
 @Global()
 @Module({
@@ -25,6 +26,7 @@ import { SharedModule } from './shared/shared.module';
     SharedModule,
     TaskModule,
     OkrModule,
+    TemplateModule,
     NotificationModule,
   ],
   providers: [

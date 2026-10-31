@@ -1383,6 +1383,14 @@ NOTION_API_TOKEN=secret_xxx
 NOTION_TASK_DATABASE_ID=xxx
 NOTION_TASK_DATASOURCE=xxx
 
+# Kaneo (plantillas de tareas, ver docs/kaneo-templates.md)
+KANEO_URL=http://kaneo.kaneo.svc
+KANEO_API_KEY=xxx
+KANEO_DAILY_PROJECT_ID=xxx
+KANEO_TEMPLATE_PROJECT_ID=xxx
+# Opcional, columna donde nacen las tareas (por defecto to-do)
+KANEO_TASK_STATUS=to-do
+
 # Discord
 DISCORD_BOT_TOKEN=xxx
 DISCORD_CHANNEL_ID=xxx

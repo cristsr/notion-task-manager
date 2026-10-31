@@ -11,7 +11,8 @@
       "@daily/*": ["apps/nexus/src/daily/*"],
       "@shared/*": ["apps/nexus/src/shared/*"],
       "@notification/*": ["apps/nexus/src/notification/*"],
-      "@okr/*": ["apps/nexus/src/okr/*"]
+      "@okr/*": ["apps/nexus/src/okr/*"],
+      "@template/*": ["apps/nexus/src/template/*"]
     }
   },
   "include": ["src/**/*.ts"],
