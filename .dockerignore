@@ -1,0 +1,14 @@
+node_modules
+dist
+.nx
+.git
+.github
+.idea
+.vscode
+.fastRequest
+.ai
+docs
+coverage
+**/.env
+**/.env.*
+database.json

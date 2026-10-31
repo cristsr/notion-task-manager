@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /workspace
 COPY package.json package-lock.json ./
@@ -8,11 +8,11 @@ COPY nx.json tsconfig.base.json ./
 
 RUN npm ci
 
-# Build the application
-RUN npm run nx build nexus --configuration=production
+# Build the application. npx, not npm run: npm would take --configuration for one of its own flags
+RUN npx nx build nexus --configuration=production
 
 # Production stage
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
