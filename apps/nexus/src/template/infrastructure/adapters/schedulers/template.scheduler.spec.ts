@@ -19,6 +19,12 @@ describe('TemplateScheduler', () => {
     expect(usecase.execute).toHaveBeenCalledTimes(1);
   });
 
+  it('runs once when the module starts', async () => {
+    await build({ KANEO_TEMPLATE_PROJECT_ID: 'templates-1' }).onModuleInit();
+
+    expect(usecase.execute).toHaveBeenCalledTimes(1);
+  });
+
   it('does nothing in a deployment that does not use Kaneo', async () => {
     await build({}).createTemplatedTasks();
 

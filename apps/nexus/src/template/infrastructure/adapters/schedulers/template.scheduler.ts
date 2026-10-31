@@ -1,17 +1,24 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ErrorLogFormatter } from '@shared/application/logging';
 import { CreateTemplatedTasksUsecase } from '@template/application/usecases';
 
 @Injectable()
-export class TemplateScheduler {
+export class TemplateScheduler implements OnModuleInit {
   private readonly logger = new Logger(TemplateScheduler.name);
 
   constructor(
     private readonly createTemplatedTasksUsecase: CreateTemplatedTasksUsecase,
     private readonly config: ConfigService,
   ) {}
+
+  /**
+   * Runs once at start, so a restart past the creation hour does not wait for the next hour
+   */
+  async onModuleInit(): Promise<void> {
+    await this.createTemplatedTasks();
+  }
 
   /**
    * Hourly, so a day is not lost when the service was down at the creation hour
