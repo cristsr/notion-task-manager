@@ -13,6 +13,7 @@ export default {
     '^@okr/(.*)$': '<rootDir>/src/okr/$1',
     '^@notification/(.*)$': '<rootDir>/src/notification/$1',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@template/(.*)$': '<rootDir>/src/template/$1',
   },
   coverageDirectory: '../../coverage/apps/nexus',
 };
