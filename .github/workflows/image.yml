@@ -41,8 +41,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # The tag is the commit, never reused. The homelab pins it by hand in
-      # workloads/nexus/nexus.yaml, as Renovate skips ghcr.io/cristsr/**.
+      # The tag is the commit, never reused.
       - id: tag
         run: echo "value=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
@@ -51,4 +50,7 @@ jobs:
           context: .
           file: apps/nexus/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.value }}
+          # `develop` is the moving tag Renovate follows in the homelab: it opens a PR with the new digest
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.value }}
+            ${{ github.ref_name == 'develop' && format('ghcr.io/{0}:develop', github.repository) || '' }}
